@@ -1,14 +1,7 @@
+from aiat_utils import tryread, errexit
 import csv
 import os
 import sys
-
-def tryread(name):
-    try:
-        with open(name, "r") as csvfile:
-            return [r for r in csv.reader(csvfile)]
-    except:
-        print(f"Could not read file: {name}")
-        exit(-1)
 
 def conv_row(row, conv_dict):
     new_row = row
@@ -51,8 +44,7 @@ def price_delta(data, date_col_n="history_day_date",
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: price_delta.py [data.csv]", file=sys.stderr)
-        exit(1)
+        errexit("Usage: price_delta.py [data.csv]", 1)
 
     data = tryread(sys.argv[1])
 
@@ -61,8 +53,7 @@ if __name__ == "__main__":
     try:
         calc_data = price_delta(data)
     except ValueError as e:
-        print(str(e), file=sys.stderr)
-        exit(1)
+        errexit(str(e), -2)
 
     if not calc_data is None:
         writer = csv.writer(sys.stdout)
