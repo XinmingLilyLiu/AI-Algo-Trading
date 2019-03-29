@@ -1,14 +1,10 @@
-# -*- coding: utf-8 -*-
 # import libraries
-import urllib2
+import requests
 from bs4 import BeautifulSoup
 import datetime
 import pandas as pd
 
-# encoding=utf8
 import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 def get_dates(start, end):
     dates = []
@@ -23,19 +19,32 @@ def get_title_abstrct(text):
     abstract = " ".join(t[1:])
     return title, abstract
 
+def article_time_scrap(url):
+	page = requests.get(url)
+	soup = BeautifulSoup(page.content, 'html.parser')
+	
+	dt = soup.find('div', class_='ArticleHeader_date').text
+	return dt.split('/')[1].strip()
+	
 def scrap(url):
     # query the website and return the html to the variable ‘page’
     articles = []
-    page = urllib2.urlopen(url)
+    page = requests.get(url)
 
     # parse the html using beautiful soup and store in variable `soup`
-    soup = BeautifulSoup(page, 'html.parser')
+    soup = BeautifulSoup(page.content, 'html.parser')
 
-    # Take out the <div> of all feature articles and get its value
-    text_box = soup.findAll('div', attrs={"class": "feature"})
+	# Remove action buttons
+    for i in soup.findAll('div', class_='actionButton'): i.extract()
+	
+    # Take out the <div> of all articles and get its value
+    text_box = soup.findAll('div', class_=lambda s: s in ["feature", "topStory"])
     for t in text_box:
+        link = t.a['href']
+        time = article_time_scrap(f"https://www.reuters.com{link}")
+		
         text = t.text.strip()
-        articles.append(text)
+        articles.append((time, text))
     return articles
 
 
@@ -45,15 +54,16 @@ end = datetime.datetime.strptime("03-02-2019", "%m-%d-%Y")
 dates = get_dates(start, end)
 
 for company in companies:
-    df = pd.DataFrame(columns=['date', 'title', 'abstract'])
+    df = pd.DataFrame(columns=['date', 'time', 'title', 'abstract'])
     for date in dates:
-        url = 'https://www.reuters.com/finance/stocks/company-news/'+company+'?date='+date
+        print(date)
+        url = f"https://www.reuters.com/finance/stocks/company-news/{company}?date={date}"
         articles = scrap(url)
         if articles:
-            for article in articles:
+            for time, article in articles:
                 title, abstract = get_title_abstrct(article)
                 new_date = date[4:] + '-' + date[:2] + '-' + date[2:4]
-                new_row = pd.Series([new_date, title, abstract], index=['date', 'title', 'abstract'])
+                new_row = pd.Series([new_date, time, title, abstract], index=['date', 'time', 'title', 'abstract'])
                 df = pd.concat([df, new_row.to_frame().T])
     df.to_csv('News/'+company+'.csv', index = False)
 
