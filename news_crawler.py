@@ -41,14 +41,14 @@ def scrap(url):
     text_box = soup.findAll('div', class_=lambda s: s in ["feature", "topStory"])
     for t in text_box:
         link = t.a['href']
-        time = article_time_scrap(f"https://www.reuters.com{link}")
+        time = article_time_scrap("https://www.reuters.com{link}")
 		
         text = t.text.strip()
         articles.append((time, text))
     return articles
 
 
-companies = ['GS.A'] #['AMZN.OQ', 'FB.OQ', 'TSLA.OQ', 'GE.A', 'GS.A']
+companies = ['AMZN.OQ'] #['AMZN.OQ', 'FB.OQ', 'TSLA.OQ', 'GE.A', 'GS.A']
 start = datetime.datetime.strptime("03-03-2014", "%m-%d-%Y")
 end = datetime.datetime.strptime("03-02-2019", "%m-%d-%Y")
 dates = get_dates(start, end)
@@ -57,7 +57,7 @@ for company in companies:
     df = pd.DataFrame(columns=['date', 'time', 'title', 'abstract'])
     for date in dates:
         print(date)
-        url = f"https://www.reuters.com/finance/stocks/company-news/{company}?date={date}"
+        url = "https://www.reuters.com/finance/stocks/company-news/{company}?date={date}"
         articles = scrap(url)
         if articles:
             for time, article in articles:
