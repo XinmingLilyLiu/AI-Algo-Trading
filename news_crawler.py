@@ -68,9 +68,10 @@ def scrap(url, remove_el='div', remove_class='actionButton',
 def process_date(date):
     df = pd.DataFrame(columns=['date', 'time', 'title', 'abstract'])
 
-    #url = f"https://www.reuters.com/finance/stocks/company-news/{company}?date={date}"
-    url = f"https://www.reuters.com/finance/markets/us?date={date}"
-    articles = scrap(url, remove_el='time', remove_class='article-time', text_class='story-content')
+    url = f"https://www.reuters.com/finance/stocks/company-news/{company}?date={date}"
+    #url = f"https://www.reuters.com/finance/markets/us?date={date}"
+    #articles = scrap(url, remove_el='time', remove_class='article-time', text_class='story-content')
+    articles = scrap(url)
     if articles:
         for time, article in articles:
             title, abstract = get_title_abstrct(article)
@@ -82,15 +83,15 @@ def process_date(date):
     return df
 
 if __name__ == '__main__':
-    company = 'US' #['AMZN.OQ', 'FB.OQ', 'TSLA.OQ', 'GE.A', 'GS.A']
+    company = 'BA' #['AMZN.OQ', 'FB.OQ', 'TSLA.OQ', 'GE.A', 'GS.A']
     #start = datetime.datetime.strptime("03-03-2014", "%m-%d-%Y")
-    start = datetime.datetime.strptime("02-05-2018", "%m-%d-%Y")
-    end = datetime.datetime.strptime("03-02-2019", "%m-%d-%Y")
+    start = datetime.datetime.strptime("01-01-2013", "%m-%d-%Y")
+    end = datetime.datetime.strptime("11-28-2017", "%m-%d-%Y")
     dates = get_dates(start, end)
 	
     f = open(f"News/{company}.csv", "a+")
 	
-    #print("date,time,title,abstract", file=f)
+    print("date,time,title,abstract", file=f)
 	
     for d in tqdm.tqdm(map(process_date, dates), total=len(dates)):
-        print(d.to_csv(index=False), file=f)
+        print(d.to_csv(index=False, header=False), file=f, end="")
